@@ -1,0 +1,9 @@
+main: main.o add.o sub.o
+	gcc main.o add.o sub.o -o main
+main.o: main.c compute.h
+	gcc -c main.c -Wall -g
+add.o: add.c compute.h
+	gcc -c add.c -Wall -g
+sub.o: sub.c compute.h
+	gcc -c sub.c  -Wall -g
+

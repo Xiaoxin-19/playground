@@ -1,0 +1,29 @@
+# Compiler
+CC = gcc
+
+# Compiler flags
+CFLAGS = -Wall  -g
+
+# Source files
+SRCS = test.c test2.c test3.c
+
+# Object files
+OBJS = $(SRCS:.c=.o)
+
+# Targets
+TARGETS = test test2 test3
+
+all: $(TARGETS)
+
+test: test.o 
+	$(CC) $(CFLAGS) -o $@ $^
+test2: test2.o 
+	$(CC) $(CFLAGS) -o $@ $^
+test3: test3.o 
+	$(CC) $(CFLAGS) -o $@ $^
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+clean:
+	rm -f $(OBJS) $(TARGETS)
+
+rebuild: clean all
