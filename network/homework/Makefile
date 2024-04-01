@@ -6,7 +6,7 @@ COM_P := -Wall -g
 OBJS = $(SRCS:.c=.o) 
 all: $(OUTS)
 %: %.c
-	$(CC) $^ -o $@ $(COM_P) -Ipthread
+	$(CC) $^ -o $@ $(COM_P) -pthread
 
 clean:
 	$(RM) $(OUTS) $(OBJS)

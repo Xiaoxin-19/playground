@@ -84,7 +84,7 @@ int connect_retry(const char *addr_target, int port)
       return -1;
     }
 
-    if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == 0)
+    if (connect(fd, (SA *)&addr, sizeof(addr)) == 0)
     {
       printf("connect success\n");
       return fd;
