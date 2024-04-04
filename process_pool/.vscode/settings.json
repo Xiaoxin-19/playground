@@ -1,0 +1,12 @@
+{
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/m_server/header"
+  ],
+  "files.associations": {
+    "types.h": "c",
+    "stdio.h": "c",
+    "socket.h": "c",
+    "common.h": "c",
+    "inet.h": "c"
+  }
+}
