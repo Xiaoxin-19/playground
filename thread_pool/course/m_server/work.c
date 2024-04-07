@@ -47,14 +47,18 @@ void *work(void *arg)
 
   while (true)
   {
-    // 检测是否退出
-    if (pool->status == QUIT)
-    {
-      break;
-    }
+
     pthread_mutex_lock(&mutex);
     while (queue->size == 0)
     {
+      // 检测是否退出
+      if (pool->status == QUIT)
+      {
+        printf("thread[%lu]: is exiting\n", tid);
+        pthread_mutex_unlock(&mutex);
+        pthread_cond_signal(&cond);
+        return (void *)0;
+      }
       pthread_cond_wait(&cond, &mutex);
     }
     int client_socket = front(queue);
@@ -143,4 +147,10 @@ int send_file(tran_protocol_t *protocol, int client_socket)
   }
   printf("thred[%lu]: send file success, transport %ld bytes\n", pthread_self(), ret);
   return ret;
+}
+
+/// @brief 唤醒条件锁
+void signal_cond()
+{
+  pthread_cond_signal(&cond);
 }

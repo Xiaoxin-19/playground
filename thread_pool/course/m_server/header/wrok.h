@@ -21,4 +21,5 @@ typedef struct
 
 void *work(void *arg);
 void add_job(Queue *q, int client_fd);
+void signal_cond();
 #endif // WORK_H

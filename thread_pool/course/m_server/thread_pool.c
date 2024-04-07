@@ -35,6 +35,7 @@ thread_pool_t *create_thread_pool(Queue *q)
 void destroy_thread_pool(thread_pool_t *pool)
 {
   pool->status = QUIT;
+  signal_cond();
   for (int i = 0; i < pool->size; i++)
   {
     pthread_join(pool->list[i].tid, NULL);

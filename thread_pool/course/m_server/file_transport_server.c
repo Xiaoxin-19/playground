@@ -11,10 +11,10 @@
 #include "signal_m.h"
 #include "wrok.h"
 #include "global.h"
+#include "epoll_m.h"
 
 void sigint_handler(int signum);
 int start_server(int, Queue *);
-void *handler_exit(void *);
 
 int farther_son_fd[2];
 
@@ -41,11 +41,8 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  // 设置SIGINT信号处理函数
-  signal(SIGINT, SIG_IGN);
-  pthread_t tid;
-  pthread_create(&tid, NULL, handler_exit, NULL);
-
+  // 屏蔽中断信号
+  signal_m(SIGINT, SIG_IGN);
   close(farther_son_fd[1]);
 
   job_queue = create_queue();
@@ -73,13 +70,36 @@ int start_server(int server_fd, Queue *job_queue)
 {
   // 屏蔽SIGPIPE信号
   signal_m(SIGPIPE, SIG_IGN);
-  // TODO: 使用epoll 监听来自父进程的通知，设置退出标记，并倒数60秒后退出。
+  int epoll_fd = Epoll_create();
+  struct epoll_event *ev = NULL, *ev_server = NULL;
+  struct epoll_event evlists[3];
+  add_read_to_epoll(epoll_fd, server_fd, ev_server);
+  add_read_to_epoll(epoll_fd, farther_son_fd[0], ev);
   // 监听请求，并加入工作队列
   while (true)
   {
-    int newfd = accept(server_fd, NULL, NULL);
-    ERROR_CHECK(newfd, -1, "accept error");
-    add_job(job_queue, newfd);
+    int ret = epoll_wait(epoll_fd, evlists, 3, -1);
+    ERROR_CHECK(ret, -1, "epoll wait failed");
+    for (int i = 0; i < ret; i++)
+    {
+      int curr_fd = evlists[i].data.fd;
+      if (curr_fd == server_fd)
+      {
+        int newfd = accept(server_fd, NULL, NULL);
+        ERROR_CHECK(newfd, -1, "accept error");
+        add_job(job_queue, newfd);
+      }
+      else if (curr_fd == farther_son_fd[0])
+      {
+        char buf[128];
+        printf("receive exit from parent\n");
+        ERROR_CHECK(read(farther_son_fd[0], buf, sizeof(buf)), -1, "read failed");
+        if (strcmp(buf, "quit") == 0)
+        {
+          destroy_thread_pool(pool);
+        }
+      }
+    }
   }
 }
 
@@ -89,16 +109,4 @@ void sigint_handler(int signum)
 {
   char buf[5] = "quit";
   write(farther_son_fd[1], buf, sizeof(buf));
-}
-
-/// 接收父进程的退出通知
-void *handler_exit(void *arg)
-{
-  char buf[128];
-  ERROR_CHECK(read(farther_son_fd[0], buf, sizeof(buf)), -1, "read failed");
-  if (strcmp(buf, "quit") == 0)
-  {
-    destroy_thread_pool(pool);
-  }
-  return 0;
 }
