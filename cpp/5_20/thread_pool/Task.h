@@ -1,7 +1,27 @@
 #ifndef __TASK_H__
 #define __TASK_H__
 #include <tuple>
+#include <functional>
 using std::tuple;
+
+class IEventHalder
+{
+public:
+    virtual void process() = 0;
+    virtual ~IEventHalder() = default;
+};
+
+template <typename... Args>
+class EventHalder : public IEventHalder
+{
+public:
+    EventHalder(func, args...)
+    {
+    }
+
+private:
+    std::funciton<void> func;
+};
 
 template <typename... Args>
 class Task
